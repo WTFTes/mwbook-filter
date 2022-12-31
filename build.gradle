@@ -1,0 +1,76 @@
+plugins {
+    id 'java'
+    id "com.github.spotbugs" version "5.0.0-beta.2"
+    id 'distribution'
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    fat
+}
+
+dependencies {
+    implementation 'org.omegat:omegat:5.6.0'
+}
+
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation" << "-Xlint:unchecked"
+}
+
+jar {
+    manifest {
+        // plugin's main class name is defined in gradle.properties file.
+        attributes(
+            "OmegaT-Plugins": pluginMainClass,
+            "Plugin-Version": pluginVersion,
+            "Plugin-Name": pluginName,
+            "Plugin-Author": pluginAuthor,
+            "Plugin-Description": pluginDescription
+        )
+    }
+
+    archiveFileName = "${rootProject.name}-${pluginVersion}.jar"
+}
+
+/* SpotBugs */
+spotbugs {
+    ignoreFailures = true
+}
+
+spotbugsMain {
+    reports {
+        html {
+            enabled = true
+            destination = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
+    }
+}
+tasks.spotbugsTest.setEnabled(false)
+
+artifacts {
+    archives jar
+}
+
+distZip {
+    archiveFileName = "${rootProject.name}-${pluginVersion}.zip"
+}
+
+distTar {
+    compression = Compression.GZIP
+}
+
+
+distributions {
+    main {
+        contents {
+            from(jar) {
+                into 'plugin'
+            }
+        }
+    }
+}
