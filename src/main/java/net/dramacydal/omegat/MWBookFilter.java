@@ -4,7 +4,6 @@ import org.omegat.core.Core;
 import org.omegat.filters2.AbstractFilter;
 import org.omegat.filters2.FilterContext;
 import org.omegat.filters2.Instance;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -16,6 +15,7 @@ import java.util.regex.Pattern;
 public class MWBookFilter extends AbstractFilter {
     public static void loadPlugins() {
         Core.registerFilterClass(MWBookFilter.class);
+        Core.registerFilterClass(MWScriptFilter.class);
     }
 
     public static void unloadPlugins() {
@@ -53,7 +53,7 @@ public class MWBookFilter extends AbstractFilter {
             if (line == null)
                 break;
 
-            if (line.equals("")) {
+            if (line.trim().equals("")) {
                 out.write(line);
                 out.write("\r\n");
                 continue;
@@ -62,31 +62,28 @@ public class MWBookFilter extends AbstractFilter {
             Pattern p = Pattern.compile("(<[^>]+>)");
             Matcher matcher = p.matcher(line);
 
-            Vector<Integer> keys = new Vector<>();
-            Vector<Integer> values = new Vector<>();
+            ArrayList<MyPair<Integer, Integer>> matches = new ArrayList<>();
 
             while (matcher.find()) {
-                keys.add(matcher.start());
-                values.add(matcher.end());
+                matches.add(new MyPair<>(matcher.start(), matcher.end()));
             }
 
-            if (keys.isEmpty()) {
+            if (matches.isEmpty()) {
                 subParse(line, out);
                 out.write("\r\n");
                 continue;
             }
 
             int lastTokenStart = 0;
-            for (int i = 0; i < keys.size(); ++i) {
-                int key = keys.get(i);
-                int value = values.get(i);
-                if (key - lastTokenStart > 0) {
-                    String tok = line.substring(lastTokenStart, key);
+            for (int i = 0; i < matches.size(); ++i) {
+                MyPair<Integer, Integer> match = matches.get(i);
+                if (match.getKey() - lastTokenStart > 0) {
+                    String tok = line.substring(lastTokenStart, match.getKey());
                     subParse(tok, out);
                 }
 
-                out.write(line.substring(key, value));
-                lastTokenStart = value + 1;
+                out.write(line.substring(match.getKey(), match.getValue()));
+                lastTokenStart = match.getValue() + 1;
             }
 
             if (lastTokenStart < line.length()) {

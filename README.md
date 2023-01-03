@@ -1,6 +1,6 @@
-# MWBook file filter plugin for OmegaT
+# Filter plugin for Morrowind books and scripts for OmegaT
 
-This is *.mwbook file filter plugin for OmegaT.
+This is *.mwbook and *.mwscript file filter plugin for OmegaT.
 
 ## Building
 
