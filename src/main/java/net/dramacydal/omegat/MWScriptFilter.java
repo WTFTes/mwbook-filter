@@ -134,6 +134,7 @@ public class MWScriptFilter extends AbstractFilter {
             }
 
             String trans = processEntry(line.substring(match.getKey(), match.getValue()));
+            trans = trans.replace('"', '\'');
             out.write(trans);
 
             if (i == sections.size() - 1)
